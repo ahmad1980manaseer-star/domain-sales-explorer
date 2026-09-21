@@ -1,11 +1,10 @@
-# Domain Sales Explorer
+# Closeout Buy Panel
 
-Interactive viewer for a 3-month domain aftermarket sales analysis (2026-06-21 → 2026-09-19):
-1,078 reported sales across 4L .com / 5L .com / 4L .net / .xyz tabs, each enriched with
-registry (RDAP) holding history, DNS lander signatures, comp-based fair-value modeling and
-per-domain analyst verdicts (why the price, confidence the price is genuine, listing type,
-buyer type, ownership history).
+Live buy-decision panel for Dynadot expired-domain closeouts (sheet 2026-09-22: 205 x 5L .com, 5 x 4L .net).
+Each of the 210 candidates carries: closeout cost + Amman deadline + Dynadot link, JEV-mode probability
+verdict (P(sell 1yr/3yr), EV net of fees, ROI vs cost, STRONG BUY/BUY/SPECULATIVE/PASS), a buy-side analyst
+call with why/special/risks/exit-plan, and the empirical comp band from a 3-month aftermarket baseline.
+98 analyst BUYs, $1,555 total to take them all.
 
-Single self-contained `index.html` — no build, no server, no dependencies.
-
-Deployed via GitHub Pages. Cloudflare Pages alternative: `npx wrangler pages deploy . --project-name=domain-sales-explorer`
+Single self-contained `index.html`. Deployed via GitHub Pages.
+Cloudflare alternative: `npx wrangler pages deploy . --project-name=closeout-buy-panel`
