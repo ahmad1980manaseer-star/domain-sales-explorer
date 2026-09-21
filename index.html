@@ -145,7 +145,7 @@ a.m:hover{color:var(--grn);border-color:rgba(67,217,154,.4)}
     </div>
     <div class="searchwrap">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <input id="q" type="text" placeholder="search domain, venue, buyer…" autocomplete="off">
+      <input id="q" type="text" placeholder="search sales + closeouts (domain, venue, buyer)…" autocomplete="off">
     </div>
     <div class="kpis">
       <div class="kpi"><b>210</b><span>closeouts live</span></div>
@@ -353,6 +353,14 @@ function render(){
       `<button class="fchip ${CF.sort==='cl'?'on':''}" data-csort="cl">deadline</button>` + `</div>`;
     $('main').innerHTML = bar + `<div class="resultbar"><b>${a.length}</b><span>closeouts · JEV-mode rank = ROI × P(sell 1yr)</span></div>
       <div class="cards">${slice.map(candCard).join('')}</div>${pagerHTML(a.length)}`;
+    if(a.length===0 && q){
+      const sm = DATA.filter(x => (x.d+' '+x.vn+' '+x.bt+' '+(x.why||'')).toLowerCase().includes(q)).length;
+      if(sm>0){
+        $('main').insertAdjacentHTML('beforeend', `<div style="text-align:center;padding:20px">
+          <button class="fchip" id="jumpSales" style="font-size:13px;padding:9px 16px">→ ${sm} match${sm>1?'es':''} in the SALES HISTORY (Domains tab) — click to jump</button></div>`);
+        $('jumpSales').onclick = () => { S.tab='domains'; render(); };
+      }
+    }
     document.querySelectorAll('[data-cv]').forEach(b=>b.onclick=()=>{CF.verdict=CF.verdict===b.dataset.cv?'':b.dataset.cv;S.page=1;render();});
     document.querySelectorAll('[data-cb]').forEach(b=>b.onclick=()=>{CF.buy=CF.buy===b.dataset.cb?'':b.dataset.cb;S.page=1;render();});
     document.querySelectorAll('[data-cu]').forEach(b=>b.onclick=()=>{CF.urgency=CF.urgency===b.dataset.u?'':b.dataset.u;S.page=1;render();});
@@ -370,7 +378,15 @@ function render(){
   $('main').innerHTML = slice.length
     ? `<div class="resultbar"><b>${a.length.toLocaleString('en-US')}</b><span>sales shown · sorted by ${$('sort').selectedOptions[0].text.toLowerCase()}</span></div>
        <div class="cards">${slice.map(card).join('')}</div>${pagerHTML(a.length)}`
-    : `<div class="empty">no sales match the current filters</div>`;
+    : `<div class="empty">no sales match the current filters${S.q?' (searching the sales history — the Closeouts tab is separate)':''}</div>`;
+  if(slice.length===0 && S.q){
+    const cm = CAND.filter(x => (x.domain+' '+((x.agent||{}).why||'')).toLowerCase().includes(S.q.toLowerCase())).length;
+    if(cm>0){
+      $('main').insertAdjacentHTML('beforeend', `<div style="text-align:center;padding:20px">
+        <button class="fchip" id="jumpCand" style="font-size:13px;padding:9px 16px">→ ${cm} match${cm>1?'es':''} in the CLOSEOUTS buy list — click to jump</button></div>`);
+      $('jumpCand').onclick = () => { S.tab='closeouts'; render(); };
+    }
+  }
   const pv=$('pv'), nx=$('nx');
   if(pv) pv.onclick=()=>{S.page--;render();window.scrollTo({top:0,behavior:'smooth'})};
   if(nx) nx.onclick=()=>{S.page++;render();window.scrollTo({top:0,behavior:'smooth'})};
