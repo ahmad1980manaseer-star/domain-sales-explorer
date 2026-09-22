@@ -194,7 +194,7 @@ const COSTS = ['5','15','30','60'];
 const CATS = ['5L .com','4L .net'];
 const PAGE = 40;
 
-const S = {tab:'closeouts', q:'', verdict:'', buy:'', cost:'', cat:'', cn:'',
+const S = {tab:'closeouts', q:'', verdicts:[], buys:[], costs:[], cats:[], cn:'',
            wordOnly:false, chipsOnly:false, sort:'ra', page:1};
 
 const $ = id => document.getElementById(id);
@@ -238,10 +238,10 @@ function filtered(){
   let a = CAND.slice();
   const q = S.q.toLowerCase();
   if(q) a = a.filter(x => (x.domain+' '+((x.agent||{}).why||'')).toLowerCase().includes(q));
-  if(S.verdict) a = a.filter(x => x.verdict === S.verdict);
-  if(S.buy) a = a.filter(x => (x.agent||{}).buy === S.buy);
-  if(S.cost) a = a.filter(x => String(x.cost) === S.cost);
-  if(S.cat) a = a.filter(x => x.cat === S.cat);
+  if(S.verdicts.length) a = a.filter(x => S.verdicts.includes(x.verdict));
+  if(S.buys.length) a = a.filter(x => S.buys.includes((x.agent||{}).buy));
+  if(S.costs.length) a = a.filter(x => S.costs.includes(String(x.cost)));
+  if(S.cats.length) a = a.filter(x => S.cats.includes(x.cat));
   if(S.cn === '1') a = a.filter(x => x.cn && x.cn.cn_channel);
   if(S.cn === '2') a = a.filter(x => x.cn && x.cn.pinyin_word);
   if(S.wordOnly) a = a.filter(x => x.profile && (x.profile.word || x.profile.plural));
@@ -264,10 +264,16 @@ function renderTabs(){
   document.querySelectorAll('.tab').forEach(b => b.onclick = () => { S.tab=b.dataset.tab; S.page=1; render(); });
 }
 
-function renderChips(el, list, key){
-  el.innerHTML = `<button class="fchip ${S[key]===''?'on':''}" data-v="">all</button>` +
-    list.map(v => `<button class="fchip ${S[key]===v?'on':''}" data-v="${esc(v)}">${v === '5' || v === '15' || v === '30' || v === '60' ? '$'+v : esc(v)}</button>`).join('');
-  el.querySelectorAll('.fchip').forEach(b => b.onclick = () => { S[key]=b.dataset.v; S.page=1; render(); });
+function renderChips(el, list, key, money){
+  const cur = S[key];
+  el.innerHTML = `<button class="fchip ${cur.length===0?'on':''}" data-v="">all</button>` +
+    list.map(v => `<button class="fchip ${cur.includes(v)?'on':''}" data-v="${esc(v)}">${money?'$':''}${esc(v)}</button>`).join('');
+  el.querySelectorAll('.fchip').forEach(b => b.onclick = () => {
+    const v = b.dataset.v;
+    if(v === '') S[key] = [];
+    else S[key] = cur.includes(v) ? cur.filter(x => x !== v) : cur.concat([v]);
+    S.page = 1; renderRail(); render();
+  });
 }
 
 function pagerHTML(n){
@@ -297,16 +303,16 @@ function render(){
 }
 
 function renderRail(){
-  renderChips(document.querySelector('[data-f=cn]'), ['1','2'], 'cn');
-  document.querySelector('[data-f=cn]').innerHTML =
+  const cnEl = document.querySelector('[data-f=cn]');
+  cnEl.innerHTML =
     `<button class="fchip ${S.cn===''?'on':''}" data-v="">all</button>` +
     `<button class="fchip ${S.cn==='1'?'on':''}" data-v="1">🎯 China channel</button>` +
     `<button class="fchip ${S.cn==='2'?'on':''}" data-v="2">pinyin word</button>`;
-  document.querySelectorAll('[data-f=cn] .fchip').forEach(b=>b.onclick=()=>{S.cn=b.dataset.v;S.page=1;render();});
-  renderChips(document.querySelector('[data-f=verdict]'), VERDICTS, 'verdict');
-  renderChips(document.querySelector('[data-f=buy]'), BUYS, 'buy');
-  renderChips(document.querySelector('[data-f=cost]'), COSTS, 'cost');
-  renderChips(document.querySelector('[data-f=cat]'), CATS, 'cat');
+  cnEl.querySelectorAll('.fchip').forEach(b=>b.onclick=()=>{S.cn=b.dataset.v;S.page=1;renderRail();render();});
+  renderChips(document.querySelector('[data-f=verdict]'), VERDICTS, 'verdicts');
+  renderChips(document.querySelector('[data-f=buy]'), BUYS, 'buys');
+  renderChips(document.querySelector('[data-f=cost]'), COSTS, 'costs', true);
+  renderChips(document.querySelector('[data-f=cat]'), CATS, 'cats');
 }
 
 let deb;
@@ -315,7 +321,7 @@ $('wordOnly').addEventListener('change', e => { S.wordOnly=e.target.checked; S.p
 $('chipsOnly').addEventListener('change', e => { S.chipsOnly=e.target.checked; S.page=1; render(); });
 $('sort').addEventListener('change', e => { S.sort=e.target.value; S.page=1; render(); });
 $('reset').onclick = () => {
-  Object.assign(S,{q:'',verdict:'',buy:'',cost:'',cat:'',cn:'',wordOnly:false,chipsOnly:false,sort:'ra',page:1});
+  Object.assign(S,{q:'',verdicts:[],buys:[],costs:[],cats:[],cn:'',wordOnly:false,chipsOnly:false,sort:'ra',page:1});
   $('q').value=''; $('wordOnly').checked=false; $('chipsOnly').checked=false; $('sort').value='ra';
   render(); renderRail();
 };
